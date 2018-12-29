@@ -1,0 +1,15 @@
+arch:
+  num_hidden_layers: 6
+  hidden_size: 256
+  filter_size: 512
+  num_heads: 8
+
+  relu_dropout: 0.1
+  attention_dropout: 0.1
+  layer_postprocess_dropout: 0.1
+
+  allow_ffn_pad: True
+
+train:
+  lr: 0.0001
+  steps: 10000
