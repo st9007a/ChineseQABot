@@ -4,26 +4,21 @@ import string
 import re
 
 import tensorflow as tf
-from zhon.hanzi import punctuation
 
 PAD_ID = 0
-PAD_TOKEN = '<p/>'
-START_ID = 1
-START_TOKEN = '<s>'
-END_ID = 2
-END_TOKEN = '</s>'
+PAD_TOKEN = '<pad>'
+EOS_ID = 1
+EOS_TOKEN = '<eos>'
 
 MAX_LENGTH = int(sys.argv[1])
 
 def encode(line, char_dict):
     ret = []
-    ret.append(START_ID)
-
 
     for i, w in enumerate(line):
         ret.append(char_dict[w])
 
-    ret.append(END_ID)
+    ret.append(EOS_ID)
 
     while len(ret) < MAX_LENGTH:
         ret.append(PAD_ID)
@@ -58,14 +53,13 @@ if __name__ == '__main__':
     vocab.sort(key=lambda x: x[1])
     vocab.reverse()
     vocab = [el[0] for el in vocab]
-    char2idx = {w: i + 3 for i, w in enumerate(vocab)}
+    char2idx = {w: i + 2 for i, w in enumerate(vocab)}
 
     print('vocab size (char level):', len(vocab))
 
     with open('data/vocab.txt', 'w') as f:
         f.write(PAD_TOKEN + '\n')
-        f.write(START_TOKEN + '\n')
-        f.write(END_TOKEN + '\n')
+        f.write(EOS_TOKEN + '\n')
 
         for w in vocab:
             f.write(w + '\n')
