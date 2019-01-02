@@ -43,19 +43,11 @@ class Attention():
 
             return tf.reshape(x, [batch_size, length, self.hidden_size])
 
-    def __call__(self, x, y, bias, cache=None):
+    def __call__(self, x, y, bias):
 
         q = self.q_dense_layer(x)
         k = self.q_dense_layer(y)
         v = self.q_dense_layer(y)
-
-        if cache is not None:
-            # axis=1 is "length" dimension
-            k = tf.concat([cache['k'], k], axis=1)
-            v = tf.concat([cache['v'], v], axis=1)
-
-            cache['k'] = k
-            cache['v'] = v
 
         q = self.split_head(q)
         k = self.split_head(k)
@@ -78,5 +70,5 @@ class Attention():
 
 class SelfAttention(Attention):
 
-    def __call__(self, x, bias, cache=None):
-        return super(SelfAttention, self).__call__(x, x, bias, cache)
+    def __call__(self, x, bias):
+        return super(SelfAttention, self).__call__(x, x, bias)

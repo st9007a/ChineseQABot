@@ -37,7 +37,7 @@ class FeedForwardNetwork():
             with tf.name_scope('remove_padding'):
 
                 pad_mask = tf.reshape(padding, [-1])
-                nonpad_ids = tf.to_int(tf.where(pad_mask < 1e-9))
+                nonpad_ids = tf.to_int32(tf.where(pad_mask < 1e-9))
 
                 x = tf.reshape(x, [-1, self.hidden_size])
                 x = tf.gather_nd(x, indices=nonpad_ids)

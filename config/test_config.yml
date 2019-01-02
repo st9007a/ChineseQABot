@@ -4,6 +4,8 @@ arch:
   filter_size: 512
   num_heads: 8
 
+  initializer_gain: 1.0
+
   relu_dropout: 0.1
   attention_dropout: 0.1
   layer_postprocess_dropout: 0.1

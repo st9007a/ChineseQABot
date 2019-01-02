@@ -39,21 +39,37 @@ def model_fn(features, labels, mode, params):
                     'response': tf.estimator.export.PredictOutput(logits)
                 })
 
-        xentropy = tf.nn.softmax_cross_enctropy_with_logits_v2(logits=logits, labels=labels)
+        xentropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
         loss = tf.reduce_sum(xentropy)
 
         optimizer = tf.contrib.opt.LazyAdamOptimizer(learning_rate=1e-3)
-        train_op = optimizer.minimize(loss)
+        train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
 
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
+
+def train_input_fn():
+
+    def _parse_example(serialized_example):
+        data_fields = {'q': tf.FixedLenFeature((100,), tf.int64), 'a': tf.FixedLenFeature((100,), tf.int64)}
+        parsed = tf.parse_single_example(serialized_example, data_fields)
+
+        return parsed['q'], parsed['a']
+
+    dataset = tf.data.TFRecordDataset('data/qa.tfrecords')
+    dataset = dataset.map(_parse_example, num_parallel_calls=4)
+    dataset = dataset.shuffle(50000)
+    dataset = dataset.batch(32)
+
+    return dataset
 
 if __name__ == '__main__':
 
     params, vocab = load_config()
 
-    tf.estimator.Estimator(model_fn=model_fn, model_dir='build/', params=params['arch'])
+    config = tf.estimator.RunConfig(save_checkpoints_steps=5000, model_dir='build/')
+    estimator = tf.estimator.Estimator(model_fn=model_fn, params=params['arch'], config=config)
 
     for i in range(10):
-        #!TODO: train hook (batch size)
-        estimator.train(dataset.train_input_fn, steps=100000)
+        estimator.train(train_input_fn, steps=100000)
+        print(i)
 
