@@ -6,8 +6,6 @@ from .embedding import ShareWeightsEmbedding
 from .ffn import FeedForwardNetwork
 from .utils import get_padding, get_padding_bias, get_decoder_self_attention_bias, get_position_encoding
 
-from .lib import beam_search
-
 class Transformer():
 
     def __init__(self, params, train):
