@@ -29,7 +29,7 @@ def model_fn(features, labels, mode, params):
     with tf.variable_scope('model'):
         model = Transformer(params, mode == tf.estimator.ModeKeys.TRAIN)
 
-        logits = model(features, labels)
+        logits = model(features['q'], features['a'])
 
         if mode == tf.estimator.ModeKeys.PREDICT:
             return tf.estimator.EstimatorSpec(
@@ -53,14 +53,19 @@ def train_input_fn():
         data_fields = {'q': tf.FixedLenFeature((100,), tf.int64), 'a': tf.FixedLenFeature((100,), tf.int64)}
         parsed = tf.parse_single_example(serialized_example, data_fields)
 
-        return parsed['q'], parsed['a']
+        return {'q': parsed['q'], 'a': parsed['a']}, parsed['a']
 
     dataset = tf.data.TFRecordDataset('data/qa.tfrecords')
     dataset = dataset.map(_parse_example, num_parallel_calls=4)
     dataset = dataset.shuffle(50000)
+    dataset = dataset.repeat()
     dataset = dataset.batch(32)
 
     return dataset
+
+def serving_input_fn():
+    inputs = {'q': tf.placeholder(tf.int64, [None, 100]), 'a': tf.placeholder(tf.int64, [None, 100])}
+    return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 if __name__ == '__main__':
 
@@ -71,5 +76,4 @@ if __name__ == '__main__':
 
     for i in range(10):
         estimator.train(train_input_fn, steps=100000)
-        print(i)
-
+        estimator.export_savedmodel(export_dir_base='serve/', serving_input_receiver_fn=serving_input_fn)
