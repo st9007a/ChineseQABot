@@ -1,5 +1,7 @@
 # Chinese QA Bot
 
+Using [transformer](https://arxiv.org/abs/1706.03762) to train a Chinese chatbot.
+
 ## Dataset
 
 - Reference: [PTT 中文語料](https://github.com/zake7749/Gossiping-Chinese-Corpus)
