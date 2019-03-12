@@ -11,7 +11,3 @@ arch:
   layer_postprocess_dropout: 0.1
 
   allow_ffn_pad: True
-
-train:
-  lr: 0.0001
-  steps: 10000

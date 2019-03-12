@@ -1,0 +1,3 @@
+PyYAML==3.13
+tensorflow-gpu==1.8.0
+numpy==1.16.1

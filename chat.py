@@ -44,8 +44,6 @@ if __name__ == '__main__':
     while True:
         test_input = input('請輸入中文句子:')
 
-        print([el if el in word2idx else ' ' for el in test_input])
-
         test_input = [word2idx[el] for el in test_input if el in word2idx]
         while len(test_input) < 100:
             test_input.append(0)
