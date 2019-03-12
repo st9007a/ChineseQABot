@@ -4,6 +4,8 @@ import sys
 import numpy as np
 import tensorflow as tf
 
+from utils.beam_search import BeamSearch
+
 def load_model(model_dir):
     sess = tf.Session()
     meta_graph_def = tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], model_dir)
@@ -36,23 +38,23 @@ if __name__ == '__main__':
 
     idx2word, word2idx = load_vocab()
     sess, tensors = load_model(sys.argv[1])
+    beam_search = BeamSearch(session=sess, eval_tensors=tensors['output'], feed_tensors=[tensors['q'], tensors['a']])
 
-    test_input = '有沒有主管的八掛'
+    while True:
+        test_input = input('請輸入中文句子:')
 
-    test_input = [word2idx[el] for el in test_input if el in word2idx]
-    while len(test_input) < 100:
-        test_input.append(0)
-    a = np.zeros((1, 100))
+        test_input = [word2idx[el] for el in test_input if el in word2idx]
+        while len(test_input) < 100:
+            test_input.append(0)
 
-    for i in range(100):
-        predict = sess.run(tensors['output'], feed_dict={tensors['q']: np.array([test_input]), tensors['a']: a})
-        a[0, i] = np.argmax(predict[0, i])
+        _, finished_seq = beam_search.search(test_input)
 
-        if a[0, i] == 1:
-            break
+        for seq in finished_seq:
+            response = [idx2word[int(el)] for el in seq[1]]
+            while response[-1] == '<pad>' or response[-1] == '<eos>':
+                response.pop()
 
-    response = [idx2word[int(el)] for el in a[0]]
-    while response[-1] == '<pad>' or response[-1] == '<eos>':
-        response.pop()
+            response = ''.join(response)
+            print('Score: % .6f, Response: %s' % (seq[0], response))
 
-    print(''.join(response))
+        print('==============')
