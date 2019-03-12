@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import time
 
 import numpy as np
 import tensorflow as tf
@@ -43,11 +44,19 @@ if __name__ == '__main__':
     while True:
         test_input = input('請輸入中文句子:')
 
+        print([el if el in word2idx else ' ' for el in test_input])
+
         test_input = [word2idx[el] for el in test_input if el in word2idx]
         while len(test_input) < 100:
             test_input.append(0)
 
+        start = time.time()
         _, finished_seq = beam_search.search(test_input)
+        end = time.time()
+
+        print('Search time: %.6f sec' % (end - start))
+
+        finished_seq.sort(key=lambda x: x[0], reverse=True)
 
         for seq in finished_seq:
             response = [idx2word[int(el)] for el in seq[1]]
