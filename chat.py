@@ -44,7 +44,8 @@ if __name__ == '__main__':
                              feed_tensors=[tensors['q'], tensors['a']],
                              alpha=0.6,
                              beam_width=10,
-                             max_length=100)
+                             max_length=100,
+                             eos_id=1)
 
     while True:
         test_input = input('請輸入中文句子:')
@@ -54,7 +55,7 @@ if __name__ == '__main__':
             test_input.append(0)
 
         start = time.time()
-        _, finished_seq = beam_search.search(test_input)
+        finished_seq = beam_search.search(test_input)
         end = time.time()
 
         print('Search time: %.6f sec' % (end - start))
