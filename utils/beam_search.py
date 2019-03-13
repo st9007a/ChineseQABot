@@ -24,7 +24,6 @@ class BeamSearch():
 
     def search(self, input_arr):
         res = np.zeros((self.max_length,))
-        min_score = -10000
         alive_seq = []
         finished_seq = []
 

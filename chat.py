@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from math import log
 import sys
 import time
 
@@ -35,6 +36,41 @@ def load_vocab():
 
     return word_list, word_idx_map
 
+def rerank(sequences):
+    tf = []
+    df = {}
+    max_len = -1
+    scores = []
+
+    for seq in sequences:
+        ttf = {}
+        exist = set()
+        for token in seq:
+            ttf[token] = ttf.get(token, 0) + 1
+
+            if token not in exist:
+                df[token] = df.get(token, 0) + 1
+                exist.add(token)
+
+        tf.append(ttf)
+
+        if len(seq) > max_len:
+            max_len = len(seq)
+
+    for i, seq in enumerate(sequences):
+        score = 0
+        for token in seq:
+            s = df[token]
+            s *= log(max_len/tf[i][token])
+
+            score += s
+
+        score /= len(seq)
+        scores.append(score)
+
+    return scores
+
+
 if __name__ == '__main__':
 
     idx2word, word2idx = load_vocab()
@@ -48,7 +84,7 @@ if __name__ == '__main__':
                              eos_id=1)
 
     while True:
-        test_input = input('請輸入中文句子:')
+        test_input = input('請輸入中文句子: ')
 
         test_input = [word2idx[el] for el in test_input if el in word2idx]
         while len(test_input) < 100:
@@ -58,9 +94,12 @@ if __name__ == '__main__':
         finished_seq = beam_search.search(test_input)
         end = time.time()
 
+        print('==============')
+        print('Information:')
         print('Search time: %.6f sec' % (end - start))
 
         finished_seq.sort(key=lambda x: x[0], reverse=True)
+        responses =[]
 
         for seq in finished_seq:
             response = [idx2word[int(el)] for el in seq[1]]
@@ -68,6 +107,15 @@ if __name__ == '__main__':
                 response.pop()
 
             response = ''.join(response)
-            print('Score: % .6f, Response: %s' % (seq[0], response))
+            responses.append(response)
 
+        rerank_scores = rerank(responses)
+
+        for rescore, seq, response in zip(rerank_scores, finished_seq, responses):
+            print('Score: {:.6f}, Rerank score: {:>9.6f}, Response: {:s}'.format(seq[0], rescore, response))
+
+        final_id = rerank_scores.index(max(rerank_scores))
+
+        print('==============')
+        print('Finial response: {:s}'.format(responses[final_id]))
         print('==============')
