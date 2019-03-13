@@ -39,7 +39,12 @@ if __name__ == '__main__':
 
     idx2word, word2idx = load_vocab()
     sess, tensors = load_model(sys.argv[1])
-    beam_search = BeamSearch(session=sess, eval_tensors=tensors['output'], feed_tensors=[tensors['q'], tensors['a']])
+    beam_search = BeamSearch(session=sess,
+                             eval_tensors=tensors['output'],
+                             feed_tensors=[tensors['q'], tensors['a']],
+                             alpha=0.6,
+                             beam_width=10,
+                             max_length=100)
 
     while True:
         test_input = input('請輸入中文句子:')

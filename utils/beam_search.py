@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from math import log
+from math import log, pow
 
 import numpy as np
 
@@ -8,13 +8,14 @@ def softmax(x):
 
 class BeamSearch():
 
-    def __init__(self, session, eval_tensors, feed_tensors, beam_width=10, max_length=100):
+    def __init__(self, session, eval_tensors, feed_tensors, alpha=0.6, beam_width=10, max_length=100):
         self.session = session
         self.eval_tensors = eval_tensors
         self.feed_tensors = feed_tensors
 
         self.beam_width = beam_width
         self.max_length = max_length
+        self.alpha = alpha
 
     def _run(self, vals):
         feed_dict = {tensor: value for tensor, value in zip(self.feed_tensors, vals)}
@@ -42,9 +43,9 @@ class BeamSearch():
 
                 for idx in candidate:
                     proba = log(decode_proba[idx])
-                    score = state[1] * len(state[0]) + proba
                     seq = state[0] + [proba]
-                    score /= (i + 1)
+                    len_norm = pow((5.+i+1.) / 6, self.alpha)
+                    score = sum(seq) / len_norm
 
                     new_res = np.array(state[2])
                     new_res[i] = idx
