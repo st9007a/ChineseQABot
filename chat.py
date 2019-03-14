@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from math import log
+from math import log, pow
 import sys
 import time
 
@@ -7,6 +7,9 @@ import numpy as np
 import tensorflow as tf
 
 from utils.beam_search import BeamSearch
+from utils.ranker import Ranker
+
+stopwords = set(['嗎', '啊', '啦', '喇', '不', '是', '好', '吧', '你', '就'])
 
 def load_model(model_dir):
     sess = tf.Session()
@@ -36,41 +39,6 @@ def load_vocab():
 
     return word_list, word_idx_map
 
-def rerank(sequences):
-    tf = []
-    df = {}
-    max_len = -1
-    scores = []
-
-    for seq in sequences:
-        ttf = {}
-        exist = set()
-        for token in seq:
-            ttf[token] = ttf.get(token, 0) + 1
-
-            if token not in exist:
-                df[token] = df.get(token, 0) + 1
-                exist.add(token)
-
-        tf.append(ttf)
-
-        if len(seq) > max_len:
-            max_len = len(seq)
-
-    for i, seq in enumerate(sequences):
-        score = 0
-        for token in seq:
-            s = df[token]
-            s *= log(max_len/tf[i][token])
-
-            score += s
-
-        score /= len(seq)
-        scores.append(score)
-
-    return scores
-
-
 if __name__ == '__main__':
 
     idx2word, word2idx = load_vocab()
@@ -79,9 +47,10 @@ if __name__ == '__main__':
                              eval_tensors=tensors['output'],
                              feed_tensors=[tensors['q'], tensors['a']],
                              alpha=0.6,
-                             beam_width=10,
+                             beam_width=15,
                              max_length=100,
                              eos_id=1)
+    ranker = Ranker(repeat_penality=1.5)
 
     while True:
         test_input = input('請輸入中文句子: ')
@@ -95,7 +64,7 @@ if __name__ == '__main__':
         end = time.time()
 
         print('==============')
-        print('Information:')
+        print('Find {:d} candidates'.format(len(finished_seq)))
         print('Search time: %.6f sec' % (end - start))
 
         finished_seq.sort(key=lambda x: x[0], reverse=True)
@@ -109,10 +78,10 @@ if __name__ == '__main__':
             response = ''.join(response)
             responses.append(response)
 
-        rerank_scores = rerank(responses)
+        rerank_scores = ranker.fit_transform(responses)
 
         for rescore, seq, response in zip(rerank_scores, finished_seq, responses):
-            print('Score: {:.6f}, Rerank score: {:>9.6f}, Response: {:s}'.format(seq[0], rescore, response))
+            print('Score: {:.6f}, Re-rank score: {:>9.6f}, Response: {:s}'.format(seq[0], rescore, response))
 
         final_id = rerank_scores.index(max(rerank_scores))
 
