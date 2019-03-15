@@ -10,7 +10,7 @@ PAD_TOKEN = '<pad>'
 EOS_ID = 1
 EOS_TOKEN = '<eos>'
 
-MAX_LENGTH = int(sys.argv[1])
+MAX_LENGTH = 100
 
 def encode(line, char_dict):
     ret = []
