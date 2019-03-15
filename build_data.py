@@ -50,8 +50,7 @@ if __name__ == '__main__':
                 vocab[w] += 1
 
     vocab = [(k, vocab[k]) for k in vocab]
-    vocab.sort(key=lambda x: x[1])
-    vocab.reverse()
+    vocab.sort(key=lambda x: x[1], reverse=True)
     vocab = [el[0] for el in vocab]
     char2idx = {w: i + 2 for i, w in enumerate(vocab)}
 

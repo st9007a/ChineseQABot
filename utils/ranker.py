@@ -2,9 +2,8 @@
 from math import pow, log
 
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
 
-stopwords = ['嗎', '啊', '啦', '喇', '不', '是', '好', '吧', '你', '就']
+stopwords = ['嗎', '啊', '啦', '喇', '不', '是', '好', '吧', '你', '就', '的']
 
 class Ranker():
 
