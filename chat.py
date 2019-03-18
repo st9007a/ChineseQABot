@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
         for seq in finished_seq:
             response = [idx2word[int(el)] for el in seq[1]]
-            while response[-1] == '<pad>' or response[-1] == '<eos>':
+            while len(response) > 0 and (response[-1] == '<pad>' or response[-1] == '<eos>'):
                 response.pop()
 
             response = ''.join(response)
