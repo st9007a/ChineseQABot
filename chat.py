@@ -67,11 +67,11 @@ if __name__ == '__main__':
         print('Find {:d} candidates'.format(len(finished_seq)))
         print('Search time: %.6f sec' % (end - start))
 
-        finished_seq.sort(key=lambda x: x[0], reverse=True)
+        finished_seq.sort(key=lambda x: x['score'], reverse=True)
         responses =[]
 
         for seq in finished_seq:
-            response = [idx2word[int(el)] for el in seq[1]]
+            response = [idx2word[int(el)] for el in seq['ids']]
             while len(response) > 0 and (response[-1] == '<pad>' or response[-1] == '<eos>'):
                 response.pop()
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         rerank_scores = ranker.fit_transform(responses)
 
         for rescore, seq, response in zip(rerank_scores, finished_seq, responses):
-            print('Score: {:.6f}, Re-rank score: {:>9.6f}, Response: {:s}'.format(seq[0], rescore, response))
+            print('Score: {:.6f}, Re-rank score: {:>9.6f}, Response: {:s}'.format(seq['score'], rescore, response))
 
         final_id = rerank_scores.index(max(rerank_scores))
 

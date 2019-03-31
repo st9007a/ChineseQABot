@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
 from math import log, pow
+import bisect
 
 import numpy as np
 
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x), axis=0)
+
+def insort(array, item, key=None):
+    if len(array) == 0:
+        array.append(item)
+        return
+
+    index_array = [key(el) for el in array] if key else array
+    index_item = key(item) if key else item
+
+    index = bisect.bisect_right(index_array, index_item)
+    array.insert(index, item)
 
 class BeamSearch():
 
@@ -27,42 +39,59 @@ class BeamSearch():
         alive_seq = []
         finished_seq = []
 
-        alive_seq.append(([], 0, res))
+        alive_seq.append({'score': 0, 'probs': [], 'ids': res})
 
         for i in range(self.max_length):
-            answer = np.array([el[2] for el in alive_seq])
+            answer = np.array([el['ids'] for el in alive_seq])
             question = np.tile(input_arr, (answer.shape[0], 1))
+
+            # shape of `decode_ids` = (batch_size, max_length, vocab_size)
             decode_ids = self._run([question, answer])
 
             new_alive_seq = []
 
             for state, decode_proba in zip(alive_seq, decode_ids[:, i, :]):
+
+                # shape of `decode_proba` = (vocab_size,)
                 candidate = np.argsort(decode_proba)[-self.beam_width:]
                 decode_proba = softmax(decode_proba)
 
                 for idx in candidate:
                     proba = log(decode_proba[idx])
-                    seq = state[0] + [proba]
+                    seq = state['probs'] + [proba]
+
+                    # See http://opennmt.net/OpenNMT/translation/beam_search/#length-normalization
                     len_norm = pow((5.+i+1.) / 6, self.alpha)
                     score = sum(seq) / len_norm
 
-                    new_res = np.array(state[2])
+                    new_res = np.array(state['ids'])
                     new_res[i] = idx
 
                     if idx == self.eos_id:
-                        finished_seq.append((score, new_res))
+                        finished_seq.append({'score': score, 'ids': new_res})
                     else:
-                        new_alive_seq.append((seq, score, new_res))
+                        new_alive_seq.append({'score': score, 'probs': seq, 'ids': new_res})
 
             alive_seq = new_alive_seq
-            alive_seq.sort(key=lambda x: x[1], reverse=True)
-            alive_seq = alive_seq[:self.beam_width]
+            alive_seq.sort(key=lambda el: el['score'])
+            alive_seq = alive_seq[-self.beam_width:]
 
             if len(finished_seq) > 0:
-                finished_seq.sort(key=lambda x: x[0], reverse=True)
-                finished_seq = finished_seq[:self.beam_width]
+                finished_seq.sort(key=lambda el: el['score'])
+                finished_seq = finished_seq[-self.beam_width:]
 
-                if finished_seq[-1][0] > alive_seq[0][1]:
+                if finished_seq[0]['score'] > alive_seq[-1]['score']:
                     break
 
         return finished_seq
+
+if __name__ == '__main__':
+
+    arr = []
+
+    insort(arr, (100, 'a'), key=lambda x: x[0])
+    print(arr)
+    insort(arr, (300, 'a'), key=lambda x: x[0])
+    print(arr)
+    insort(arr, (200, 'a'), key=lambda x: x[0])
+    print(arr)
