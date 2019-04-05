@@ -10,7 +10,7 @@ PAD_TOKEN = '<pad>'
 EOS_ID = 1
 EOS_TOKEN = '<eos>'
 
-MAX_LENGTH = 100
+MAX_LENGTH = 32
 
 def encode(line, char_dict):
     ret = []
@@ -74,6 +74,9 @@ if __name__ == '__main__':
             a = find_and_validate(a)
 
             if len(q) == 0 or len(a) == 0:
+                continue
+
+            if len(q) > MAX_LENGTH or len(a) > MAX_LENGTH:
                 continue
 
             q = encode(q, char2idx)

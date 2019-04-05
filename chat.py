@@ -48,7 +48,7 @@ if __name__ == '__main__':
                              feed_tensors=[tensors['q'], tensors['a']],
                              alpha=0.6,
                              beam_width=15,
-                             max_length=100,
+                             max_length=32,
                              eos_id=1)
     ranker = Ranker(repeat_penality=1.5)
 
@@ -56,8 +56,9 @@ if __name__ == '__main__':
         test_input = input('請輸入中文句子: ')
 
         test_input = [word2idx[el] for el in test_input if el in word2idx]
-        while len(test_input) < 100:
+        while len(test_input) < 32:
             test_input.append(0)
+        test_input = test_input[:32]
 
         start = time.time()
         finished_seq = beam_search.search(test_input)

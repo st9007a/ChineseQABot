@@ -1,0 +1,13 @@
+arch:
+  num_hidden_layers: 6
+  hidden_size: 512
+  filter_size: 1024
+  num_heads: 8
+
+  initializer_gain: 1.0
+
+  relu_dropout: 0.1
+  attention_dropout: 0.1
+  layer_postprocess_dropout: 0.1
+
+  allow_ffn_pad: True

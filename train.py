@@ -50,7 +50,7 @@ def model_fn(features, labels, mode, params):
 def train_input_fn():
 
     def _parse_example(serialized_example):
-        data_fields = {'q': tf.FixedLenFeature((100,), tf.int64), 'a': tf.FixedLenFeature((100,), tf.int64)}
+        data_fields = {'q': tf.FixedLenFeature((32,), tf.int64), 'a': tf.FixedLenFeature((32,), tf.int64)}
         parsed = tf.parse_single_example(serialized_example, data_fields)
 
         return {'q': parsed['q'], 'a': parsed['a']}, parsed['a']
@@ -59,21 +59,21 @@ def train_input_fn():
     dataset = dataset.map(_parse_example, num_parallel_calls=4)
     dataset = dataset.shuffle(50000)
     dataset = dataset.repeat()
-    dataset = dataset.batch(32)
+    dataset = dataset.batch(256)
 
     return dataset
 
 def serving_input_fn():
-    inputs = {'q': tf.placeholder(tf.int64, [None, 100]), 'a': tf.placeholder(tf.int64, [None, 100])}
+    inputs = {'q': tf.placeholder(tf.int64, [None, 32]), 'a': tf.placeholder(tf.int64, [None, 32])}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 if __name__ == '__main__':
 
     params, vocab = load_config()
 
-    config = tf.estimator.RunConfig(save_checkpoints_steps=5000, model_dir='build/')
+    config = tf.estimator.RunConfig(save_checkpoints_steps=5000, model_dir='tensorboard/build3/')
     estimator = tf.estimator.Estimator(model_fn=model_fn, params=params['arch'], config=config)
 
     for i in range(10):
-        estimator.train(train_input_fn, steps=100000)
-        estimator.export_savedmodel(export_dir_base='serve/', serving_input_receiver_fn=serving_input_fn)
+        estimator.train(train_input_fn, steps=50000)
+        estimator.export_savedmodel(export_dir_base='saved_models/serve3/', serving_input_receiver_fn=serving_input_fn)

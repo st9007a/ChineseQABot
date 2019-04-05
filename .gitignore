@@ -2,3 +2,5 @@ data/
 __pycache__/
 build/
 serve/
+saved_models/
+tensorboard/
