@@ -4,3 +4,4 @@ build/
 serve/
 saved_models/
 tensorboard/
+.ipynb_checkpoints/
