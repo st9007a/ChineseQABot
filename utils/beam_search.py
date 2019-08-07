@@ -83,7 +83,7 @@ class BeamSearch():
                 if finished_seq[0]['score'] > alive_seq[-1]['score']:
                     break
 
-        return finished_seq
+        return finished_seq if len(finished_seq) > 0 else alive_seq
 
 if __name__ == '__main__':
 
