@@ -83,7 +83,14 @@ class BeamSearch():
                 if finished_seq[0]['score'] > alive_seq[-1]['score']:
                     break
 
-        return finished_seq if len(finished_seq) > 0 else alive_seq
+        i = 0
+        while len(finished_seq) < self.beam_width and i < len(alive_seq):
+            finished_seq.append(alive_seq[i])
+            i += 1
+
+        finished_seq.sort(key=lambda el: el['score'])
+
+        return finished_seq
 
 if __name__ == '__main__':
 
